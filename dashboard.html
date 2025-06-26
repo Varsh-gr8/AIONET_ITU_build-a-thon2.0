@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <title>AIONET Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+[data-theme="light"] {
+    background: linear-gradient(to right, #eef2f3, #dbe9f4);
+    color: #333;
+}
+
+[data-theme="dark"] {
+    background: linear-gradient(to right, #1f1f1f, #2c2c2c);
+    color: #f5f5f5;
+}
+
+[data-theme="light"] .card,
+[data-theme="light"] .chart-container {
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .chart-container {
+    background: #2e2e2e;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .styled-table th,
+[data-theme="dark"] .styled-table td {
+    color: #f5f5f5;
+    border-color: #555;
+}
+
+[data-theme="dark"] .styled-table th {
+    background-color: #444;
+}
+
+[data-theme="dark"] .override-btn {
+    background-color: #4d90fe;
+}
+
+[data-theme="dark"] .override-btn:hover {
+    background-color: #2c70e4;
+}
+
+.theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    border-radius: 24px;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    border-radius: 50%;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #4d90fe;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+}
+.title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+}
+.card {
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+.chart-container {
+    margin-top: 30px;
+    padding: 20px;
+    border-radius: 12px;
+}
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1rem;
+}
+.styled-table th, .styled-table td {
+    padding: 12px 18px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+.styled-table th {
+    background-color: #f5f5f5;
+}
+.tag {
+    padding: 5px 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    color: white;
+}
+.high { background-color: #28a745; }
+.medium { background-color: #ffc107; color: #333; }
+.low { background-color: #dc3545; }
+.override-btn {
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.override-btn:hover {
+    background-color: #2f6cd1;
+}
+
+body {
+    font-family: 'Orbitron', sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.dashboard-header h1 {
+    font-size: 2.5rem;
+    text-align: center;
+    color: #00ffc3;
+    text-shadow: 0 0 8px #00ffc3;
+    margin-bottom: 5px;
+}
+
+.dashboard-header .subtitle {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #88f;
+    text-shadow: 0 0 5px #88f;
+    margin-bottom: 30px;
+}
+
+.high::before {
+    content: "\f0e7";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    margin-right: 6px;
+}
+
+.medium::before {
+    content: "\f1c0";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    margin-right: 6px;
+}
+
+.low::before {
+    content: "\f2f1";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    margin-right: 6px;
+}
+.packet-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.packet-form label {
+    font-weight: 600;
+    color: #4285f4;
+    margin-bottom: 2px;
+    font-size: 1rem;
+}
+
+.packet-form input[type="text"],
+.packet-form input[type="number"] {
+    padding: 10px;
+    border: 1px solid #b5b5b5;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #f9fbfc;
+    transition: border 0.2s, box-shadow 0.2s;
+}
+[data-theme="dark"] .packet-form input[type="text"],
+[data-theme="dark"] .packet-form input[type="number"] {
+    background: #23272e;
+    color: #f5f5f5;
+    border: 1px solid #444;
+}
+.packet-form input:focus {
+    border: 1.5px solid #4285f4;
+    box-shadow: 0 0 3px #4285f4;
+    outline: none;
+}
+.packet-form button {
+    font-size: 1.1rem;
+    padding: 12px 0;
+    border-radius: 8px;
+    background: linear-gradient(90deg,#4285f4 60%,#00ffc3 100%);
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: background .2s;
+}
+.packet-form button:hover {
+    background: linear-gradient(90deg,#2f6cd1 60%,#00bfae 100%);
+}
+#packetStatus {
+    min-height: 22px;
+}
+
+    </style>
+</head>
+<body>
+    <div class="theme-toggle">
+        <label class="switch">
+            <input type="checkbox" id="modeSwitch">
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div class="container">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-network-wired"></i> AIONET Edge Controller</h1>
+            <p class="subtitle">Real-Time Network Priority Management</p>
+        </div>
+
+        <div class="card">
+            <h2>Applications</h2>
+            <table class="styled-table" id="apps">
+                <thead>
+                    <tr>
+                        <th>App</th>
+                        <th>CPU (%)</th>
+                        <th>Bandwidth (kbps)</th>
+                        <th>Priority</th>
+                        <th>Override</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Security Alerts</h2>
+            <ul id="alerts"></ul>
+        </div>
+
+        <div class="chart-container">
+            <h2>Priority Distribution</h2>
+            <canvas id="prioChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+<div class="card" style="max-width: 600px; margin: 40px auto;">
+    <h2 style="text-align:center; margin-bottom: 18px;">
+        <i class="fas fa-paper-plane"></i> Custom Packet Generator
+    </h2>
+    <form id="customPacketForm" class="packet-form">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="dst_ip"><i class="fas fa-network-wired"></i> Destination IP</label>
+                <input type="text" name="dst_ip" id="dst_ip" value="127.0.0.1" required>
+            </div>
+            <div class="form-group">
+                <label for="dport"><i class="fas fa-plug"></i> Destination Port</label>
+                <input type="number" name="dport" id="dport" value="9999" required min="1" max="65535">
+            </div>
+            <div class="form-group">
+                <label for="field1"><i class="fas fa-hashtag"></i> Field 1</label>
+                <input type="number" name="field1" id="field1" value="123" required>
+            </div>
+            <div class="form-group">
+                <label for="field2"><i class="fas fa-font"></i> Field 2</label>
+                <input type="text" name="field2" id="field2" value="abcdefghijklmno1" maxlength="16" required>
+            </div>
+            <div class="form-group">
+                <label for="field3"><i class="fas fa-font"></i> Field 3</label>
+                <input type="text" name="field3" id="field3" value="123456789012" maxlength="12" required>
+            </div>
+            <div class="form-group">
+                <label for="field4"><i class="fas fa-font"></i> Field 4</label>
+                <input type="text" name="field4" id="field4" value="abcdefghijklmnopq" maxlength="17" required>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label for="data"><i class="fas fa-database"></i> Data (83 chars)</label>
+                <input type="text" name="data" id="data" value="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" maxlength="83" required>
+            </div>
+        </div>
+        <button type="submit" class="override-btn" style="width:100%; margin-top:18px;">
+            <i class="fas fa-paper-plane"></i> Send Custom Packet
+        </button>
+        <div id="packetStatus" style="text-align:center; margin-top:10px; font-weight:600;"></div>
+    </form>
+</div>
+
+    <script>
+const priorityMap = { "high": 3, "medium": 2, "low": 1 };
+const html = document.documentElement;
+const toggle = document.getElementById("modeSwitch");
+
+// Theme toggle
+window.onload = () => {
+    let theme = localStorage.getItem("theme") || "light";
+    html.setAttribute("data-theme", theme);
+    toggle.checked = theme === "dark";
+};
+
+toggle.addEventListener("change", () => {
+    const newTheme = toggle.checked ? "dark" : "light";
+    html.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+});
+
+// Chart setup
+let ctx = document.getElementById('prioChart').getContext('2d');
+let chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Priority Level',
+            data: [],
+            backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                min: 0,
+                max: 3,
+                ticks: {
+                    stepSize: 1,
+                    callback: function(value) {
+                        return value === 3 ? 'High' : value === 2 ? 'Medium' : value === 1 ? 'Low' : '';
+                    }
+                }
+            }
+        }
+    }
+});
+
+function override(app, value) {
+    fetch('/override', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `app_name=${app}&override_priority=${value}`
+    }).then(response => response.json())
+      .then(data => {
+          if (data.status === 'success') {
+              update(); // Immediate update after override!
+          }
+      });
+}
+
+function update() {
+    fetch('/metrics').then(r => r.json()).then(data => {
+        const apps = data.metrics;
+        const tbody = document.querySelector('#apps tbody');
+        tbody.innerHTML = '';
+        chart.data.labels = [];
+        chart.data.datasets[0].data = [];
+        Object.entries(apps).forEach(([app, metrics]) => {
+            const prioNum = priorityMap[metrics.prio] || 2;
+            let select = `<select onchange="override('${app}', this.value)" ${metrics.override ? 'disabled' : ''}>`;
+            select += `<option value="">--</option>`;
+            ["high", "medium", "low"].forEach(opt => {
+                select += `<option value="${opt}" ${metrics.override === opt ? 'selected' : ''}>${opt.charAt(0).toUpperCase()+opt.slice(1)}</option>`;
+            });
+            select += `</select>`;
+            let row = `<tr>
+                <td>${app}</td>
+                <td>${metrics.cpu.toFixed(1)}</td>
+                <td>${metrics.bw.toFixed(1)}</td>
+                <td><span class="tag ${metrics.prio}">${metrics.prio}</span></td>
+                <td>${select}`;
+            if(metrics.override) {
+                row += ` <button onclick="clearOverride('${app}')" class="override-btn">Clear</button> <span style="color:green;font-weight:bold;">(Overridden)</span>`;
+            }
+            row += `</td></tr>`;
+            tbody.innerHTML += row;
+            chart.data.labels.push(app);
+            chart.data.datasets[0].data.push(prioNum);
+        });
+        chart.update();
+        const alerts = data.alerts.map(a => `<li>${a.sig} – ${a.prio}</li>`);
+        document.getElementById('alerts').innerHTML = alerts.join('');
+    });
+}
+
+function clearOverride(app) {
+    fetch('/override', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `app_name=${app}&override_priority=`
+    }).then(() => update());
+}
+
+setInterval(update, 2000);
+update();
+document.getElementById('customPacketForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const statusDiv = document.getElementById('packetStatus');
+    statusDiv.textContent = "Sending...";
+    fetch('/send_custom_packet', {
+        method: 'POST',
+        body: new URLSearchParams(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === 'success') {
+            statusDiv.style.color = "#28a745";
+            statusDiv.textContent = data.message || 'Packet sent successfully!';
+        } else {
+            statusDiv.style.color = "#dc3545";
+            statusDiv.textContent = 'Error: ' + data.message;
+        }
+    })
+    .catch(error => {
+        statusDiv.style.color = "#dc3545";
+        statusDiv.textContent = 'Network error: ' + error;
+    });
+});
+</script>
+
+</body>
+</html>
+
